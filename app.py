@@ -43,19 +43,19 @@ if not res:
             res = st_supabase_client.auth.sign_in_with_password(dict(email=email, password=password))
 else:
     st.markdown(f"""hello, {res.user.email}""")
-    client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY"),
-    )
-
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": "Say this is a test",
-            }
-        ],
-        model="gpt-3.5-turbo",
-    )
     jd = st.text_area("Job Description")
-    st.button("🪄 Magic")
+    submitted = st.button("🪄 Magic")
+    if submitted:
+        client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
 
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say this is a test",
+                }
+            ],
+            model="gpt-3.5-turbo",
+        )
