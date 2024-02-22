@@ -41,6 +41,7 @@ if not res:
                     options=dict(data=dict(fname='Siddhant',attribution='I made it :)'))))
         elif login:
             res = st_supabase_client.auth.sign_in_with_password(dict(email=email, password=password))
+            st.rerun()
 else:
     st.markdown(f"""hello, {res.user.email}""")
     jd = st.text_area("Job Description")
@@ -54,8 +55,11 @@ else:
             messages=[
                 {
                     "role": "user",
-                    "content": "Say this is a test",
+                    "content": f'''Write a perfect metrics-driven resume that is guaranteed to land the job for the following job description
+                    job_description: """{jd}"""
+                    ''',
                 }
             ],
             model="gpt-3.5-turbo",
         )
+        st.write(chat_completion.choices[0].message.content)
