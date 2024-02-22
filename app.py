@@ -5,20 +5,7 @@ from st_supabase_connection import SupabaseConnection
 from dotenv import load_dotenv
 from openai import OpenAI
 
-client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
 
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-3.5-turbo",
-)
 
 
 load_dotenv()
@@ -56,6 +43,19 @@ if not res:
             res = st_supabase_client.auth.sign_in_with_password(dict(email=email, password=password))
 else:
     st.markdown(f"""hello, {res.user.email}""")
+    client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": "Say this is a test",
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
     jd = st.text_area("Job Description")
     st.button("🪄 Magic")
 
