@@ -60,6 +60,6 @@ else:
                     ''',
                 }
             ],
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0125",
         )
         st.write(chat_completion.choices[0].message.content)
