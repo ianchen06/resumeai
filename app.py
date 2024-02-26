@@ -50,38 +50,16 @@ def check_auth():
         user_info = ac.login_button(os.getenv("AUTH0_CLIENT_ID"), os.getenv("AUTH0_DOMAIN"))
         if user_info:
             cookie_manager.set("user", user_info)
-        st.write(user_info)
+        #st.write(user_info)
     else:
-        user_info = ac.isAuth(cookie_manager.get("user"), os.getenv("AUTH0_DOMAIN"))
-        st.write(user_info)
-        st.write(cookie_manager.get("user"))
-
-def check_auth_bak():
-    if not cookie_manager.get("auth"):
-        tabs = st.tabs(["Login", "Signup"])
-        with tabs[0]:
-            email = st.text_input("Email", key="loginemail")
-            password = st.text_input("Password", type="password", key="loginpassword")
-            login = st.button("Login")
-            if login:
-                res = st_supabase_client.auth.sign_in_with_password(dict(email=email, password=password))
-                st.write(res)     
-                cookie_manager.set("auth", res.session.access_token)
-        with tabs[1]:
-            email = st.text_input("Email", key="email")
-            password = st.text_input("Password", type="password", key="password")
-            signup = st.button("Signup")
-            if signup:
-                res = st_supabase_client.auth.sign_up(dict(email=email, password=password))
-                st.success('You have successfully signed up! Please check your email to verify your account.')
-    else:
-        st.write(cookie_manager.get("auth"))
-        try:
-            data = st_supabase_client.auth.get_user(cookie_manager.get("auth"))
-            st.write(data)
-        except Exception as e:
-            cookie_manager.delete("auth")
-    return None
+        is_auth = ac.isAuth(cookie_manager.get("user"), os.getenv("AUTH0_DOMAIN"))
+        if is_auth:
+            user_info = cookie_manager.get("user")
+        #st.write(user_info)
+        #st.write(cookie_manager.get("user"))
+    if user_info:
+        st.write(f"Welcome, {user_info['nickname']}")
+    return user_info
 
 def increment_step(step):
     st.session_state['current_step'] += step
@@ -112,6 +90,7 @@ def upload_resume():
                 text = ""
                 for page in doc:
                     text += page.get_text()
+                st.session_state['resume_text'] = text
                 #st.write(text)
         os.remove(tmp.name)  # remove temp file
         st.session_state['resume'] = uploaded_file
@@ -124,21 +103,19 @@ def upload_jd():
     display_pdf(st.session_state['resume'], cols[1])
     if jd:
         st.session_state['jd'] = jd
-    control_buttons()
+        control_buttons()
 
 def ask_gpt():
     client = OpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
     )
 
-    chat_completion = client.chat.completions.create(
-        messages=[
+    messages = [
             {
                 "role": "system",
                 "content": (
                     "You will be provided with a job description and a resume."
-                    "Provide positive and constructive feedback on the resume in bullet point format."
-                    "The feedback should be tailored to the job description."
+                    "Provide feedback on the resume based on the job description."
                 ),
             },
             {
@@ -146,13 +123,19 @@ def ask_gpt():
                 "content": f'''
                 job_description: """{st.session_state['jd']}"""
 
-                resume: """{st.session_state['resume']}"""
+                resume: """{st.session_state['resume_text']}"""
                 ''',
             }
-        ],
+        ]
+    
+    print(messages)
+
+    chat_completion = client.chat.completions.create(
+        messages=messages,
         model="gpt-3.5-turbo-0125",
     )
     st.write(chat_completion.choices[0].message.content)
+    control_buttons()
 
 with st.sidebar:
     st.button("Logout", on_click=cookie_manager.delete, args=("auth",))
