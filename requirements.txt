@@ -1,4 +1,7 @@
 streamlit
-st-supabase-connection
 python-dotenv
 openai
+extra-streamlit-components
+pymupdf
+streamlit-pdf-viewer
+streamlit-auth0-component
