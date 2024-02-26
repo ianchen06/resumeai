@@ -137,8 +137,6 @@ def ask_gpt():
     st.write(chat_completion.choices[0].message.content)
     control_buttons()
 
-with st.sidebar:
-    st.button("Logout", on_click=cookie_manager.delete, args=("auth",))
 if check_auth():
     if st.session_state['current_step'] == 0:
         upload_resume()
