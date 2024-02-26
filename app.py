@@ -13,7 +13,13 @@ import fitz
 
 load_dotenv()
 
-st.set_page_config(page_title="Hippo Resume", page_icon="🦛", layout="wide", initial_sidebar_state="auto", menu_items=None)
+st.set_page_config(
+    page_title="Hippo Resume", 
+    page_icon="🦛", 
+    layout="wide", 
+    initial_sidebar_state="auto", 
+    menu_items=None
+)
 st.markdown("""
 <style>
     #MainMenu, header, footer {visibility: hidden;}
