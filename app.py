@@ -120,8 +120,12 @@ def ask_gpt():
             {
                 "role": "system",
                 "content": (
-                    "You will be provided with a job description and a resume."
-                    "Provide feedback on the resume based on the job description."
+                    """You will be provided with a job description and a resume.
+                    Please help the condidate to refine the resume by asking them five questions that can help them to tailor their experience to the job description.
+                    Please output your response in the following format:
+                    - Please ask the candidate a specific question that can trigger the candidate to think of whether having these kinds of experience that can tailored to the job description. Please be more focused on guiding the candidate to think of the experience that he/she may not think would align with the job description.
+                    - The reason why you ask this question to the candidate
+                    - Please list down the exact content from the job description that you refer to for asking the candidate this question."""
                 ),
             },
             {
