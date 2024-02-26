@@ -4,7 +4,7 @@ import base64
 
 import streamlit as st
 import extra_streamlit_components as stx
-from st_supabase_connection import SupabaseConnection
+#from st_supabase_connection import SupabaseConnection
 import auth0_component as ac
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -24,13 +24,13 @@ st.markdown("""
 </style>
 """,unsafe_allow_html=True)
 
-st_supabase_client = st.connection(
-    name="resumeai",
-    type=SupabaseConnection,
-    ttl=None,
-    url=os.getenv("SUPABASE_URL"), # not needed if provided as a streamlit secret
-    key=os.getenv("SUPABASE_KEY"), # not needed if provided as a streamlit secret
-)
+# st_supabase_client = st.connection(
+#     name="resumeai",
+#     type=SupabaseConnection,
+#     ttl=None,
+#     url=os.getenv("SUPABASE_URL"), # not needed if provided as a streamlit secret
+#     key=os.getenv("SUPABASE_KEY"), # not needed if provided as a streamlit secret
+# )
 
 def get_manager():
     return stx.CookieManager()
