@@ -49,15 +49,21 @@ if "resume" not in st.session_state:
     st.session_state['resume'] = None
 if "jd" not in st.session_state:
     st.session_state['jd'] = None
-steps = ["Upload Resume", "Upload Job Description", "Get Feedback"]
+steps = ["Upload Resume", "Upload Job Description", "Suggestion Preference", "Get Feedback"]
 
 def check_auth():
     if not cookie_manager.get("user"):
         cols = st.columns(2)
+        with cols[0]:
+            st.title("Welcome to Hippo Resume!")
+            st.subheader("Please login to continue")
         with cols[1]:
-            user_info = ac.login_button(os.getenv("AUTH0_CLIENT_ID"), os.getenv("AUTH0_DOMAIN"))
-            if user_info:
-                cookie_manager.set("user", user_info)
+            st.markdown('<div style="height: 300px;"></div>', unsafe_allow_html=True)
+            cols = st.columns(3)
+            with cols[1]:
+                user_info = ac.login_button(os.getenv("AUTH0_CLIENT_ID"), os.getenv("AUTH0_DOMAIN"))
+                if user_info:
+                    cookie_manager.set("user", user_info)
         #st.write(user_info)
     else:
         is_auth = ac.isAuth(cookie_manager.get("user"), os.getenv("AUTH0_DOMAIN"))
@@ -66,7 +72,7 @@ def check_auth():
         #st.write(user_info)
         #st.write(cookie_manager.get("user"))
     if user_info:
-        st.write(f"Welcome, {user_info['nickname']}")
+        pass
     return user_info
 
 def increment_step(step):
@@ -86,7 +92,11 @@ def display_pdf(pdf_file, ele):
     ele.markdown(pdf_display, unsafe_allow_html=True)
 
 def upload_resume():
+    
     cols = st.columns(2)
+    cols[0].markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
+    cols[0].markdown("""### Thanks for joining Hippo Resume! Our promise to you is that we'll get you closer toyour career goals, faster.
+### Let's get started by uploading your resume.""")
     uploaded_file = cols[0].file_uploader("Upload a file")
     if uploaded_file:
         bytes_data = uploaded_file.read()
@@ -106,12 +116,28 @@ def upload_resume():
     control_buttons()
 
 def upload_jd():
+    st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
+    cols = st.columns([10, 2])
+    cols[0].markdown("""### Do you have any targeted role or company?
+### We can help you to tailor your resume to the job description.""")
     cols = st.columns(2)
-    jd = cols[0].text_area("Job Description", height=850)
-    display_pdf(st.session_state['resume'], cols[1])
+    job_title = cols[0].text_input("Job Title")
+    company = cols[0].text_input("Company Name")
+    jd = cols[0].text_area("Job Description")
+    #display_pdf(st.session_state['resume'], cols[1])
     if jd:
         st.session_state['jd'] = jd
-        control_buttons()
+    if job_title:
+        st.session_state['job_title'] = job_title
+    if company:
+        st.session_state['company'] = company
+    control_buttons()
+
+def suggestion_preferences():
+    st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
+    cols = st.columns(2)
+    cols[0].markdown("""### What do you care most about the resume?""")
+    control_buttons()
 
 def ask_gpt():
     client = OpenAI(
@@ -158,23 +184,24 @@ more than three reasons of why I am not a good fit.
     
     #print(messages)
 
-    chat_completion = client.chat.completions.create(
-        messages=messages,
-        model="gpt-3.5-turbo-0125",
-    )
+    with st.spinner("Generating feedback..."):
+        chat_completion = client.chat.completions.create(
+            messages=messages,
+            model="gpt-3.5-turbo-0125",
+        )
 
-    cols = st.columns(2)
+        cols = st.columns(2)
 
-    with cols[0]:
-        st.write(chat_completion.choices[0].message.content)
+        with cols[0]:
+            st.write(chat_completion.choices[0].message.content)
 
-    with cols[1]:
-        tabs = st.tabs(["Resume", "Job Description"])
-        display_pdf(st.session_state['resume'], tabs[0])
-        with tabs[1]:
-            st.write(st.session_state['jd'])
+        with cols[1]:
+            tabs = st.tabs(["Resume", "Job Description"])
+            display_pdf(st.session_state['resume'], tabs[0])
+            with tabs[1]:
+                st.write(st.session_state['jd'])
 
-    control_buttons()
+        control_buttons()
 
 if check_auth():
     if st.session_state['current_step'] == 0:
@@ -182,4 +209,6 @@ if check_auth():
     elif st.session_state['current_step'] == 1:
         upload_jd()
     elif st.session_state['current_step'] == 2:
+        suggestion_preferences()
+    elif st.session_state['current_step'] == 3:
         ask_gpt()
