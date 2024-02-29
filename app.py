@@ -69,11 +69,13 @@ def check_auth():
                     cookie_manager.set("user", user_info)
         #st.write(user_info)
     else:
-        is_auth = ac.isAuth(cookie_manager.get("user"), os.getenv("AUTH0_DOMAIN"))
-        if is_auth:
-            user_info = cookie_manager.get("user")
-        #st.write(user_info)
-        #st.write(cookie_manager.get("user"))
+        try:
+            is_auth = ac.isAuth(cookie_manager.get("user"), os.getenv("AUTH0_DOMAIN"))
+            if is_auth:
+                user_info = cookie_manager.get("user")
+        except Exception as e:
+            st.write(e)
+            user_info = None
     if user_info:
         pass
     return user_info
