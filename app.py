@@ -4,11 +4,14 @@ import base64
 
 import streamlit as st
 import extra_streamlit_components as stx
+from streamlit_extras.stylable_container import stylable_container
 #from st_supabase_connection import SupabaseConnection
 import auth0_component as ac
 from dotenv import load_dotenv
 from openai import OpenAI
 import fitz
+
+from tweaker import st_tweaker
 
 
 load_dotenv()
@@ -75,15 +78,21 @@ def check_auth():
         pass
     return user_info
 
+def logout():
+    cookie_manager.delete("user")
+    st.rerun()
+
 def increment_step(step):
     st.session_state['current_step'] += step
     if st.session_state['current_step'] > len(steps) - 1:
         st.session_state['current_step'] = 0
 
 def control_buttons():
-    cols = st.columns(12)
-    cols[0].button("Previous", on_click=increment_step, args=(-1,))
-    cols[11].button("Next", on_click=increment_step, args=(1,))
+    cols = st.columns(2)
+    with cols[0]:
+        st.button("Previous", on_click=increment_step, args=(-1,))
+    with cols[1]:
+        st_tweaker.button("Next", id="next-btn", cls="next-btn", css="#next-btn button {float: right;}", on_click=increment_step, args=(1,), )
 
 def display_pdf(pdf_file, ele):
     bytes_data = pdf_file.getvalue()
@@ -113,7 +122,8 @@ def upload_resume():
         os.remove(tmp.name)  # remove temp file
         st.session_state['resume'] = uploaded_file
         display_pdf(uploaded_file, cols[1])
-    control_buttons()
+    with cols[0]:
+        control_buttons()
 
 def upload_jd():
     st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
@@ -203,7 +213,12 @@ more than three reasons of why I am not a good fit.
 
         control_buttons()
 
+st.sidebar.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
+st.sidebar.markdown("""### Hippo Resume""")
+st.sidebar.markdown("""#### Menu""")
+
 if check_auth():
+    st.sidebar.button("Logout", on_click=logout)
     if st.session_state['current_step'] == 0:
         upload_resume()
     elif st.session_state['current_step'] == 1:
