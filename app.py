@@ -1,10 +1,11 @@
 import os
 from tempfile import NamedTemporaryFile
 import base64
+import re
 
 import streamlit as st
 import extra_streamlit_components as stx
-from streamlit_extras.stylable_container import stylable_container
+#from streamlit_extras.stylable_container import stylable_container
 #from st_supabase_connection import SupabaseConnection
 import auth0_component as ac
 from dotenv import load_dotenv
@@ -20,7 +21,7 @@ st.set_page_config(
     page_title="Hippo Resume", 
     page_icon="🦛", 
     layout="wide", 
-    initial_sidebar_state="auto", 
+    initial_sidebar_state="collapsed", 
     menu_items=None
 )
 st.markdown("""
@@ -106,7 +107,7 @@ def upload_resume():
     
     cols = st.columns(2)
     cols[0].markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
-    cols[0].markdown("""### Thanks for joining Hippo Resume! Our promise to you is that we'll get you closer toyour career goals, faster.
+    cols[0].markdown("""### Thanks for joining Hippo Resume! Our promise to you is that we'll get you closer to your career goals, faster.
 ### Let's get started by uploading your resume.""")
     uploaded_file = cols[0].file_uploader("Upload a file")
     if uploaded_file:
@@ -128,28 +129,31 @@ def upload_resume():
         control_buttons()
 
 def upload_jd():
-    st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
-    cols = st.columns([10, 2])
-    cols[0].markdown("""### Do you have any targeted role or company?
+    cols = st.columns([2,8,2])
+    with cols[1]:
+        st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
+        st.markdown("""### Do you have any targeted role or company?
 ### We can help you to tailor your resume to the job description.""")
-    cols = st.columns(2)
-    job_title = cols[0].text_input("Job Title")
-    company = cols[0].text_input("Company Name")
-    jd = cols[0].text_area("Job Description")
-    #display_pdf(st.session_state['resume'], cols[1])
-    if jd:
-        st.session_state['jd'] = jd
-    if job_title:
-        st.session_state['job_title'] = job_title
-    if company:
-        st.session_state['company'] = company
-    control_buttons()
+        job_title = st.text_input("Job Title")
+        company = st.text_input("Company Name")
+        jd = st.text_area("Job Description")
+        #display_pdf(st.session_state['resume'], cols[1])
+        if jd:
+            st.session_state['jd'] = jd
+        if job_title:
+            st.session_state['job_title'] = job_title
+        if company:
+            st.session_state['company'] = company
+        control_buttons()
 
 def suggestion_preferences():
     st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
-    cols = st.columns(2)
-    cols[0].markdown("""### What do you care most about the resume?""")
-    control_buttons()
+    cols = st.columns([2,8,2])
+    with cols[1]:
+        st.markdown("""### What do you care most about the resume?""")
+        st.session_state['enable_content'] = st.checkbox("Content")
+        st.session_state['enable_grammar'] = st.checkbox("Grammar")
+        control_buttons()
 
 def ask_gpt():
     client = OpenAI(
@@ -166,14 +170,14 @@ def ask_gpt():
                     Separate each question with a new line and a title.
                     """
     
-    qualitative_prompt = """You will be provided with a job description and a resume.
+    qualitative_prompt = """You are an experienced career consultant. You will be provided with a job description and a resume.
 
 1. Give me a 100 words summary of job description on what kind of people they are looking for.
-2. Give me 5 key words of job description
+2. Give me 5 keywords of job description, do not use bullet points.
 3. Give me detailed feedbacks based on my resume and the fitness of this job
-more than three reasons of why I am a good fit
+more than three reasons of why I am a good fit. Use bullet points.
 4. Give me detailed feedbacks based on my resume and the fitness of this job
-more than three reasons of why I am not a good fit.
+more than three reasons of why I am not a good fit. Use bullet points.
 5. One summary: Am I a good fit? You can give me answer from perfect fit, good fit, not fit.
 """
 
@@ -187,9 +191,9 @@ more than three reasons of why I am not a good fit.
             {
                 "role": "user",
                 "content": f'''
-                job_description: """{st.session_state['jd']}"""
+                <job-description>{st.session_state['jd']}</job-description>
 
-                resume: """{st.session_state['resume_text']}"""
+                <resume>"""{st.session_state['resume_text']}</resume>
                 ''',
             }
         ]
@@ -205,7 +209,11 @@ more than three reasons of why I am not a good fit.
         cols = st.columns(2)
 
         with cols[0]:
-            st.write(chat_completion.choices[0].message.content)
+            st.markdown("""### Here are the feedbacks:""")
+            feedback = chat_completion.choices[0].message.content
+            summary = re.findall(r'Summary', feedback)
+            print(summary)
+            st.write(feedback)
 
         with cols[1]:
             tabs = st.tabs(["Resume", "Job Description"])
